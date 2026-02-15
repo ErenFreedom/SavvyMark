@@ -1,13 +1,15 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { FaUserCircle } from 'react-icons/fa'
+import { FaSignOutAlt } from 'react-icons/fa'
+import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabaseClient'
 
 export default function Navbar() {
   const [user, setUser] = useState<any>(null)
+  const router = useRouter()
 
-  // 🔥 Check session on load
+  // Check session on load
   useEffect(() => {
     const getUser = async () => {
       const { data } = await supabase.auth.getUser()
@@ -16,7 +18,6 @@ export default function Navbar() {
 
     getUser()
 
-    // Listen for auth changes
     const { data: listener } = supabase.auth.onAuthStateChange(
       (_event, session) => {
         setUser(session?.user ?? null)
@@ -28,21 +29,20 @@ export default function Navbar() {
     }
   }, [])
 
-  // 🔥 Google Login
+  // Google Login
   const handleLogin = async () => {
-  await supabase.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo: 'http://localhost:3000/dashboard',
-    },
-  })
-}
+    await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: 'http://localhost:3000/dashboard',
+      },
+    })
+  }
 
-
-
-  // 🔥 Logout
+  // Logout + Redirect
   const handleLogout = async () => {
     await supabase.auth.signOut()
+    router.push('/')
   }
 
   return (
@@ -54,35 +54,22 @@ export default function Navbar() {
           SavvyMark
         </h1>
 
-        {/* Right - Conditional */}
+        {/* Right */}
         {user ? (
-          <div className="flex items-center gap-6">
-            <FaUserCircle
-              className="text-3xl cursor-pointer transition-all duration-200 hover:text-yellow-500"
-            />
-            <button
-              onClick={handleLogout}
-              className="text-sm text-neutral-400 hover:text-yellow-500 transition"
-            >
-              Logout
-            </button>
-          </div>
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-2 text-neutral-300 hover:text-yellow-500 transition"
+          >
+            <FaSignOutAlt className="text-lg" />
+            <span>Logout</span>
+          </button>
         ) : (
-          <div className="flex items-center gap-6">
-            <button
-              onClick={handleLogin}
-              className="bg-white text-black font-semibold px-8 py-4 rounded-2xl shadow-sm transition-all duration-150 hover:bg-neutral-800 hover:text-white"
-            >
-              Login
-            </button>
-
-            <button
-              onClick={handleLogin}
-              className="bg-white text-black font-semibold px-8 py-4 rounded-2xl shadow-sm transition-all duration-150 hover:bg-neutral-800 hover:text-white"
-            >
-              Try It
-            </button>
-          </div>
+          <button
+            onClick={handleLogin}
+            className="bg-white text-black font-semibold px-8 py-4 rounded-2xl shadow-sm hover:bg-neutral-800 hover:text-white transition"
+          >
+            Login
+          </button>
         )}
 
       </div>

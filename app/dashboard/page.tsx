@@ -3,13 +3,15 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabaseClient'
 import Navbar from '../../components/Navbar'
-import { FaPlus, FaTrash, FaEdit } from 'react-icons/fa'
+import { FaPlus, FaTrash, FaEdit, FaStar } from 'react-icons/fa'
 
 type Bookmark = {
     id: string
     title: string
     url: string
+    is_favorite: boolean
 }
+
 
 export default function Dashboard() {
     const [bookmarks, setBookmarks] = useState<Bookmark[]>([])
@@ -48,6 +50,22 @@ export default function Dashboard() {
             supabase.removeChannel(channel)
         }
     }, [])
+
+    const toggleFavorite = async (id: string, current: boolean) => {
+        const { error } = await supabase
+            .from('bookmarks')
+            .update({ is_favorite: !current })
+            .eq('id', id)
+
+        if (!error) {
+            setBookmarks((prev) =>
+                prev.map((b) =>
+                    b.id === id ? { ...b, is_favorite: !current } : b
+                )
+            )
+        }
+    }
+
 
     const validateUrlServer = async (value: string) => {
         const res = await fetch('/api/validate-url', {
@@ -163,9 +181,71 @@ export default function Dashboard() {
             <Navbar />
 
             <section className="flex-1 px-12 py-12">
-                <h2 className="text-3xl font-bold mb-10">Your Bookmarks</h2>
 
-                {/* GRID */}
+                {/* ================= FAVORITES SECTION ================= */}
+                {bookmarks.some((b) => b.is_favorite) && (
+                    <>
+                        <h2 className="text-2xl font-bold mb-6">
+                            ⭐ Favorite Bookmarks
+                        </h2>
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+                            {bookmarks
+                                .filter((b) => b.is_favorite)
+                                .map((b) => (
+                                    <div
+                                        key={b.id}
+                                        className="bg-neutral-900 rounded-2xl p-5 flex flex-col justify-between h-48 hover:shadow-xl hover:shadow-yellow-500/10 transition"
+                                    >
+                                        <div>
+                                            <h3 className="font-semibold text-lg truncate">
+                                                {b.title}
+                                            </h3>
+                                            <a
+                                                href={b.url}
+                                                target="_blank"
+                                                className="text-sm text-blue-400 break-words"
+                                            >
+                                                {b.url}
+                                            </a>
+                                        </div>
+
+                                        <div className="flex justify-between items-center mt-4">
+                                            <FaStar
+                                                onClick={() =>
+                                                    toggleFavorite(b.id, b.is_favorite)
+                                                }
+                                                className="cursor-pointer text-yellow-500 transition"
+                                            />
+
+                                            <div className="flex gap-4">
+                                                <FaEdit
+                                                    onClick={() => {
+                                                        setEditingId(b.id)
+                                                        setTitle(b.title)
+                                                        setUrl(b.url)
+                                                        setIsOpen(true)
+                                                    }}
+                                                    className="cursor-pointer hover:text-yellow-500 transition"
+                                                />
+
+                                                <FaTrash
+                                                    onClick={() => deleteBookmark(b.id)}
+                                                    className="cursor-pointer hover:text-red-500 transition"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                        </div>
+                    </>
+                )}
+
+                {/* ================= NORMAL BOOKMARKS SECTION ================= */}
+                <h2 className="text-3xl font-bold mb-10">
+                    Your Bookmarks
+                </h2>
+
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
 
                     {/* ADD CARD */}
@@ -176,45 +256,60 @@ export default function Dashboard() {
                         <FaPlus className="text-4xl text-neutral-500 hover:text-yellow-500 transition" />
                     </div>
 
-                    {/* BOOKMARK CARDS */}
-                    {bookmarks.map((b) => (
-                        <div
-                            key={b.id}
-                            className="bg-neutral-900 rounded-2xl p-5 flex flex-col justify-between h-48 hover:shadow-xl hover:shadow-yellow-500/10 transition"
-                        >
-                            <div>
-                                <h3 className="font-semibold text-lg truncate">{b.title}</h3>
-                                <a
-                                    href={b.url}
-                                    target="_blank"
-                                    className="text-sm text-blue-400 break-words"
-                                >
-                                    {b.url}
-                                </a>
-                            </div>
+                    {bookmarks
+                        .filter((b) => !b.is_favorite)
+                        .map((b) => (
+                            <div
+                                key={b.id}
+                                className="bg-neutral-900 rounded-2xl p-5 flex flex-col justify-between h-48 hover:shadow-xl hover:shadow-yellow-500/10 transition"
+                            >
+                                <div>
+                                    <h3 className="font-semibold text-lg truncate">
+                                        {b.title}
+                                    </h3>
+                                    <a
+                                        href={b.url}
+                                        target="_blank"
+                                        className="text-sm text-blue-400 break-words"
+                                    >
+                                        {b.url}
+                                    </a>
+                                </div>
 
-                            <div className="flex justify-end gap-4 mt-4">
-                                <FaEdit
-                                    onClick={() => {
-                                        setEditingId(b.id)
-                                        setTitle(b.title)
-                                        setUrl(b.url)
-                                        setIsOpen(true)
-                                    }}
-                                    className="cursor-pointer hover:text-yellow-500 transition"
-                                />
+                                <div className="flex justify-between items-center mt-4">
+                                    <FaStar
+                                        onClick={() =>
+                                            toggleFavorite(b.id, b.is_favorite)
+                                        }
+                                        className={`cursor-pointer transition ${b.is_favorite
+                                                ? 'text-yellow-500'
+                                                : 'text-neutral-500 hover:text-yellow-500'
+                                            }`}
+                                    />
 
-                                <FaTrash
-                                    onClick={() => deleteBookmark(b.id)}
-                                    className="cursor-pointer hover:text-red-500 transition"
-                                />
+                                    <div className="flex gap-4">
+                                        <FaEdit
+                                            onClick={() => {
+                                                setEditingId(b.id)
+                                                setTitle(b.title)
+                                                setUrl(b.url)
+                                                setIsOpen(true)
+                                            }}
+                                            className="cursor-pointer hover:text-yellow-500 transition"
+                                        />
+
+                                        <FaTrash
+                                            onClick={() => deleteBookmark(b.id)}
+                                            className="cursor-pointer hover:text-red-500 transition"
+                                        />
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-                    ))}
+                        ))}
                 </div>
             </section>
 
-            {/* MODAL */}
+            {/* ================= MODAL ================= */}
             {isOpen && (
                 <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50">
                     <div className="bg-neutral-900 p-8 rounded-2xl w-full max-w-md space-y-5">
@@ -239,7 +334,6 @@ export default function Dashboard() {
                             onChange={(e) => setUrl(e.target.value)}
                         />
 
-                        {/* ✅ ERROR MESSAGE */}
                         {errorMsg && (
                             <p className="text-red-500 text-sm">{errorMsg}</p>
                         )}
@@ -258,7 +352,6 @@ export default function Dashboard() {
                                 Discard
                             </button>
 
-                            {/* ✅ UPDATED SAVE BUTTON */}
                             <button
                                 onClick={saveBookmark}
                                 disabled={isSaving}
@@ -277,5 +370,6 @@ export default function Dashboard() {
             )}
         </main>
     )
+
 
 }

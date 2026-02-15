@@ -14,22 +14,31 @@ export default function Footer() {
 
         <div className="flex items-center gap-10 text-2xl">
 
+          {/* Instagram */}
           <a
-            href="#"
+            href="https://www.instagram.com/bookmarks_lagbe?igsh=cnFqNmJ5N2s0eGNr"
+            target="_blank"
+            rel="noopener noreferrer"
             className="transition-all duration-300 hover:text-yellow-500 hover:scale-110"
           >
             <FaInstagram />
           </a>
 
+          {/* Facebook */}
           <a
-            href="#"
+            href="https://facebook.com"
+            target="_blank"
+            rel="noopener noreferrer"
             className="transition-all duration-300 hover:text-yellow-500 hover:scale-110"
           >
             <FaFacebookF />
           </a>
 
+          {/* X / Twitter */}
           <a
-            href="#"
+            href="https://x.com/SaveToBookmarks"
+            target="_blank"
+            rel="noopener noreferrer"
             className="transition-all duration-300 hover:text-yellow-500 hover:scale-110"
           >
             <FaXTwitter />
