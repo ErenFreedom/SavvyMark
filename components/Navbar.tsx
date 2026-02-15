@@ -34,10 +34,11 @@ export default function Navbar() {
     await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        redirectTo: 'http://localhost:3000/dashboard',
+        redirectTo: `${window.location.origin}/dashboard`,
       },
     })
   }
+
 
   // Logout + Redirect
   const handleLogout = async () => {
